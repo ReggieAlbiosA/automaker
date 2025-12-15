@@ -1,3 +1,12 @@
+<div align="center">
+  <div style="display: inline-flex; align-items: center;">
+    <img src="apps/app/public/automaker.svg" alt="Automaker Logo" height="80">
+    <span style="margin-left: 12px; font-size: 2.2rem; font-weight: 700; color: #ffffff;">automaker.</span>
+  </div>
+</div>
+
+<br />
+
 > **[!TIP]**
 >
 > **Learn more about Agentic Coding!**
@@ -11,6 +20,8 @@
 **Stop typing code. Start directing AI agents.**
 
 Automaker is an autonomous AI development studio that transforms how you build software. Instead of manually writing every line of code, you describe features on a Kanban board and watch as AI agents powered by Claude Code automatically implement them.
+
+![Automaker UI](https://i.imgur.com/jdwKydM.png)
 
 ## What Makes Automaker Different?
 
