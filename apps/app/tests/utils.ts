@@ -391,6 +391,89 @@ export async function openAddContextFileDialog(page: Page): Promise<void> {
 }
 
 /**
+ * Create a text context file via the UI
+ */
+export async function createContextFile(
+  page: Page,
+  filename: string,
+  content: string
+): Promise<void> {
+  await openAddContextFileDialog(page);
+  await page.locator('[data-testid="add-text-type"]').click();
+  await page.locator('[data-testid="new-file-name"]').fill(filename);
+  await page.locator('[data-testid="new-file-content"]').fill(content);
+  await page.locator('[data-testid="confirm-add-file"]').click();
+  await waitForElementHidden(page, "add-context-dialog");
+}
+
+/**
+ * Create an image context file via the UI
+ */
+export async function createContextImage(
+  page: Page,
+  filename: string,
+  imagePath: string
+): Promise<void> {
+  await openAddContextFileDialog(page);
+  await page.locator('[data-testid="add-image-type"]').click();
+  await page.locator('[data-testid="new-file-name"]').fill(filename);
+  await page.setInputFiles('[data-testid="image-upload-input"]', imagePath);
+  await page.locator('[data-testid="confirm-add-file"]').click();
+  await waitForElementHidden(page, "add-context-dialog");
+}
+
+/**
+ * Delete a context file via the UI (must be selected first)
+ */
+export async function deleteSelectedContextFile(page: Page): Promise<void> {
+  await page.locator('[data-testid="delete-context-file"]').click();
+  await waitForElement(page, "delete-context-dialog");
+  await page.locator('[data-testid="confirm-delete-file"]').click();
+  await waitForElementHidden(page, "delete-context-dialog");
+}
+
+/**
+ * Get the context editor content
+ */
+export async function getContextEditorContent(page: Page): Promise<string> {
+  const editor = page.locator('[data-testid="context-editor"]');
+  return await editor.inputValue();
+}
+
+/**
+ * Set the context editor content
+ */
+export async function setContextEditorContent(
+  page: Page,
+  content: string
+): Promise<void> {
+  const editor = page.locator('[data-testid="context-editor"]');
+  await editor.fill(content);
+}
+
+/**
+ * Save the current context file
+ */
+export async function saveContextFile(page: Page): Promise<void> {
+  await page.locator('[data-testid="save-context-file"]').click();
+  // Wait for save to complete (button shows "Saved")
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector('[data-testid="save-context-file"]')
+        ?.textContent?.includes("Saved"),
+    { timeout: 5000 }
+  );
+}
+
+/**
+ * Toggle markdown preview mode
+ */
+export async function toggleContextPreviewMode(page: Page): Promise<void> {
+  await page.locator('[data-testid="toggle-preview-mode"]').click();
+}
+
+/**
  * Wait for an error toast to appear with specific text
  */
 export async function waitForErrorToast(

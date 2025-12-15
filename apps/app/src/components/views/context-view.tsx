@@ -393,6 +393,7 @@ export function ContextView() {
         className="flex-1 flex overflow-hidden"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        data-testid="context-drop-zone"
       >
         {/* Left Panel - File List */}
         <div className="w-64 border-r border-border flex flex-col overflow-hidden">
