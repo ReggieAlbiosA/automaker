@@ -47,7 +47,11 @@ export function SettingsView() {
     defaultAIProfileId,
     setDefaultAIProfileId,
     aiProfiles,
+    apiKeys,
   } = useAppStore();
+
+  // Hide usage tracking when using API key (only show for Claude Code CLI users)
+  const showUsageTracking = !apiKeys.anthropic;
 
   // Convert electron Project to settings-view Project type
   const convertProject = (
@@ -99,7 +103,7 @@ export function SettingsView() {
               isChecking={isCheckingClaudeCli}
               onRefresh={handleRefreshClaudeCli}
             />
-            <ClaudeUsageSection />
+            {showUsageTracking && <ClaudeUsageSection />}
           </div>
         );
       case "ai-enhancement":

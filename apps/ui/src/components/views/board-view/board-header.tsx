@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Bot } from "lucide-react";
 import { KeyboardShortcut } from "@/hooks/use-keyboard-shortcuts";
 import { ClaudeUsagePopover } from "@/components/claude-usage-popover";
+import { useAppStore } from "@/store/app-store";
 
 interface BoardHeaderProps {
   projectName: string;
@@ -31,6 +32,11 @@ export function BoardHeader({
   addFeatureShortcut,
   isMounted,
 }: BoardHeaderProps) {
+  const apiKeys = useAppStore((state) => state.apiKeys);
+
+  // Hide usage tracking when using API key (only show for Claude Code CLI users)
+  const showUsageTracking = !apiKeys.anthropic;
+
   return (
     <div className="flex items-center justify-between p-4 border-b border-border bg-glass backdrop-blur-md">
       <div>
@@ -38,8 +44,8 @@ export function BoardHeader({
         <p className="text-sm text-muted-foreground">{projectName}</p>
       </div>
       <div className="flex gap-2 items-center">
-        {/* Usage Popover */}
-        {isMounted && <ClaudeUsagePopover />}
+        {/* Usage Popover - only show for CLI users (not API key users) */}
+        {isMounted && showUsageTracking && <ClaudeUsagePopover />}
 
         {/* Concurrency Slider - only show after mount to prevent hydration issues */}
         {isMounted && (
