@@ -245,7 +245,6 @@ export function FeatureSuggestionsDialog({
         id: `feature-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         category: s.category,
         description: s.description,
-        steps: s.steps,
         status: 'backlog' as const,
         skipTests: true, // As specified, testing mode true
         priority: s.priority, // Preserve priority from suggestion
@@ -453,23 +452,9 @@ export function FeatureSuggestionsDialog({
                           {suggestion.description}
                         </Label>
 
-                        {isExpanded && (
-                          <div className="mt-3 space-y-2 text-sm">
-                            {suggestion.reasoning && (
-                              <p className="text-muted-foreground italic">{suggestion.reasoning}</p>
-                            )}
-                            {suggestion.steps.length > 0 && (
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground mb-1">
-                                  Implementation Steps:
-                                </p>
-                                <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5">
-                                  {suggestion.steps.map((step, i) => (
-                                    <li key={i}>{step}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
+                        {isExpanded && suggestion.reasoning && (
+                          <div className="mt-3 text-sm">
+                            <p className="text-muted-foreground italic">{suggestion.reasoning}</p>
                           </div>
                         )}
                       </div>

@@ -426,7 +426,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
       interface DetectedFeature {
         category: string;
         description: string;
-        steps: string[];
         passes: boolean;
       }
 
@@ -453,11 +452,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'Testing',
             description: 'Automated test suite',
-            steps: [
-              'Step 1: Tests directory exists',
-              'Step 2: Test files are present',
-              'Step 3: Run test suite',
-            ],
             passes: true,
           });
         }
@@ -471,11 +465,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'UI/Design',
             description: 'Component-based UI architecture',
-            steps: [
-              'Step 1: Components directory exists',
-              'Step 2: UI components are defined',
-              'Step 3: Components are reusable',
-            ],
             passes: true,
           });
         }
@@ -485,11 +474,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'Project Structure',
             description: 'Organized source code structure',
-            steps: [
-              'Step 1: Source directory exists',
-              'Step 2: Code is properly organized',
-              'Step 3: Follows best practices',
-            ],
             passes: true,
           });
         }
@@ -504,11 +488,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'Frontend',
                 description: 'React-based user interface',
-                steps: [
-                  'Step 1: React is installed',
-                  'Step 2: Components render correctly',
-                  'Step 3: State management works',
-                ],
                 passes: true,
               });
             }
@@ -517,11 +496,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'Framework',
                 description: 'Next.js framework integration',
-                steps: [
-                  'Step 1: Next.js is configured',
-                  'Step 2: Pages/routes are defined',
-                  'Step 3: Server-side rendering works',
-                ],
                 passes: true,
               });
             }
@@ -536,11 +510,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'Developer Experience',
                 description: 'TypeScript type safety',
-                steps: [
-                  'Step 1: TypeScript is configured',
-                  'Step 2: Type definitions exist',
-                  'Step 3: Code compiles without errors',
-                ],
                 passes: true,
               });
             }
@@ -550,11 +519,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'UI/Design',
                 description: 'Tailwind CSS styling',
-                steps: [
-                  'Step 1: Tailwind is configured',
-                  'Step 2: Styles are applied',
-                  'Step 3: Responsive design works',
-                ],
                 passes: true,
               });
             }
@@ -564,11 +528,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'Developer Experience',
                 description: 'Code quality tools',
-                steps: [
-                  'Step 1: Linter is configured',
-                  'Step 2: Code passes lint checks',
-                  'Step 3: Formatting is consistent',
-                ],
                 passes: true,
               });
             }
@@ -578,11 +537,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'Platform',
                 description: 'Electron desktop application',
-                steps: [
-                  'Step 1: Electron is configured',
-                  'Step 2: Main process runs',
-                  'Step 3: Renderer process loads',
-                ],
                 passes: true,
               });
             }
@@ -592,11 +546,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
               detectedFeatures.push({
                 category: 'Testing',
                 description: 'Playwright end-to-end testing',
-                steps: [
-                  'Step 1: Playwright is configured',
-                  'Step 2: E2E tests are defined',
-                  'Step 3: Tests pass successfully',
-                ],
                 passes: true,
               });
             }
@@ -610,11 +559,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'Documentation',
             description: 'Project documentation',
-            steps: [
-              'Step 1: README exists',
-              'Step 2: Documentation is comprehensive',
-              'Step 3: Setup instructions are clear',
-            ],
             passes: true,
           });
         }
@@ -629,11 +573,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'DevOps',
             description: 'CI/CD pipeline configuration',
-            steps: [
-              'Step 1: CI config exists',
-              'Step 2: Pipeline runs on push',
-              'Step 3: Automated checks pass',
-            ],
             passes: true,
           });
         }
@@ -647,11 +586,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'Backend',
             description: 'API endpoints',
-            steps: [
-              'Step 1: API routes are defined',
-              'Step 2: Endpoints respond correctly',
-              'Step 3: Error handling is implemented',
-            ],
             passes: true,
           });
         }
@@ -669,11 +603,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'Architecture',
             description: 'State management system',
-            steps: [
-              'Step 1: Store is configured',
-              'Step 2: State updates correctly',
-              'Step 3: Components access state',
-            ],
             passes: true,
           });
         }
@@ -683,11 +612,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           detectedFeatures.push({
             category: 'Configuration',
             description: 'Project configuration files',
-            steps: [
-              'Step 1: Config files exist',
-              'Step 2: Configuration is valid',
-              'Step 3: Build process works',
-            ],
             passes: true,
           });
         }
@@ -700,11 +624,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
         detectedFeatures.push({
           category: 'Core',
           description: 'Basic project structure',
-          steps: [
-            'Step 1: Project directory exists',
-            'Step 2: Files are present',
-            'Step 3: Project can be loaded',
-          ],
           passes: true,
         });
       }
@@ -719,7 +638,6 @@ ${Object.entries(projectAnalysis.filesByExtension)
           id: crypto.randomUUID(),
           category: detectedFeature.category,
           description: detectedFeature.description,
-          steps: detectedFeature.steps,
           status: 'backlog',
         });
       }

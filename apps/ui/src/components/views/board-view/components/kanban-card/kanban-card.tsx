@@ -61,9 +61,7 @@ export const KanbanCard = memo(function KanbanCard({
   cardBorderEnabled = true,
   cardBorderOpacity = 100,
 }: KanbanCardProps) {
-  const { kanbanCardDetailLevel, useWorktrees } = useAppStore();
-
-  const showSteps = kanbanCardDetailLevel === 'standard' || kanbanCardDetailLevel === 'detailed';
+  const { useWorktrees } = useAppStore();
 
   const isDraggable =
     feature.status === 'backlog' ||
@@ -152,7 +150,7 @@ export const KanbanCard = memo(function KanbanCard({
 
       <CardContent className="px-3 pt-0 pb-0">
         {/* Content Sections */}
-        <CardContentSections feature={feature} useWorktrees={useWorktrees} showSteps={showSteps} />
+        <CardContentSections feature={feature} useWorktrees={useWorktrees} />
 
         {/* Agent Info Panel */}
         <AgentInfoPanel

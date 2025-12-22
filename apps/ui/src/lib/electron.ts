@@ -92,12 +92,77 @@ export interface RunningAgentsAPI {
   getAll: () => Promise<RunningAgentsResult>;
 }
 
+// GitHub types
+export interface GitHubLabel {
+  name: string;
+  color: string;
+}
+
+export interface GitHubAuthor {
+  login: string;
+}
+
+export interface GitHubIssue {
+  number: number;
+  title: string;
+  state: string;
+  author: GitHubAuthor;
+  createdAt: string;
+  labels: GitHubLabel[];
+  url: string;
+  body: string;
+}
+
+export interface GitHubPR {
+  number: number;
+  title: string;
+  state: string;
+  author: GitHubAuthor;
+  createdAt: string;
+  labels: GitHubLabel[];
+  url: string;
+  isDraft: boolean;
+  headRefName: string;
+  reviewDecision: string | null;
+  mergeable: string;
+  body: string;
+}
+
+export interface GitHubRemoteStatus {
+  hasGitHubRemote: boolean;
+  remoteUrl: string | null;
+  owner: string | null;
+  repo: string | null;
+}
+
+export interface GitHubAPI {
+  checkRemote: (projectPath: string) => Promise<{
+    success: boolean;
+    hasGitHubRemote?: boolean;
+    remoteUrl?: string | null;
+    owner?: string | null;
+    repo?: string | null;
+    error?: string;
+  }>;
+  listIssues: (projectPath: string) => Promise<{
+    success: boolean;
+    openIssues?: GitHubIssue[];
+    closedIssues?: GitHubIssue[];
+    error?: string;
+  }>;
+  listPRs: (projectPath: string) => Promise<{
+    success: boolean;
+    openPRs?: GitHubPR[];
+    mergedPRs?: GitHubPR[];
+    error?: string;
+  }>;
+}
+
 // Feature Suggestions types
 export interface FeatureSuggestion {
   id: string;
   category: string;
   description: string;
-  steps: string[];
   priority: number;
   reasoning: string;
 }
@@ -326,6 +391,7 @@ export interface ElectronAPI {
   autoMode?: AutoModeAPI;
   features?: FeaturesAPI;
   runningAgents?: RunningAgentsAPI;
+  github?: GitHubAPI;
   enhancePrompt?: {
     enhance: (
       originalText: string,
@@ -860,6 +926,9 @@ const getMockElectronAPI = (): ElectronAPI => {
 
     // Mock Running Agents API
     runningAgents: createMockRunningAgentsAPI(),
+
+    // Mock GitHub API
+    github: createMockGitHubAPI(),
 
     // Mock Claude API
     claude: {
@@ -1963,12 +2032,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-0`,
           category: 'Code Smell',
           description: 'Extract duplicate validation logic into reusable utility',
-          steps: [
-            'Identify all files with similar validation patterns',
-            'Create a validation utilities module',
-            'Replace duplicate code with utility calls',
-            'Add unit tests for the new utilities',
-          ],
           priority: 1,
           reasoning: 'Reduces code duplication and improves maintainability',
         },
@@ -1976,12 +2039,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-1`,
           category: 'Complexity',
           description: 'Break down large handleSubmit function into smaller functions',
-          steps: [
-            'Identify the handleSubmit function in form components',
-            'Extract validation logic into separate function',
-            'Extract API call logic into separate function',
-            'Extract success/error handling into separate functions',
-          ],
           priority: 2,
           reasoning: 'Function is too long and handles multiple responsibilities',
         },
@@ -1989,12 +2046,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-2`,
           category: 'Architecture',
           description: 'Move business logic out of React components into hooks',
-          steps: [
-            'Identify business logic in component files',
-            'Create custom hooks for reusable logic',
-            'Update components to use the new hooks',
-            'Add tests for the extracted hooks',
-          ],
           priority: 3,
           reasoning: 'Improves separation of concerns and testability',
         },
@@ -2007,12 +2058,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-0`,
           category: 'High',
           description: 'Sanitize user input before rendering to prevent XSS',
-          steps: [
-            'Audit all places where user input is rendered',
-            'Implement input sanitization using DOMPurify',
-            'Add Content-Security-Policy headers',
-            'Test with common XSS payloads',
-          ],
           priority: 1,
           reasoning: 'User input is rendered without proper sanitization',
         },
@@ -2020,12 +2065,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-1`,
           category: 'Medium',
           description: 'Add rate limiting to authentication endpoints',
-          steps: [
-            'Implement rate limiting middleware',
-            'Configure limits for login attempts',
-            'Add account lockout after failed attempts',
-            'Log suspicious activity',
-          ],
           priority: 2,
           reasoning: 'Prevents brute force attacks on authentication',
         },
@@ -2033,12 +2072,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-2`,
           category: 'Low',
           description: 'Remove sensitive information from error messages',
-          steps: [
-            'Audit error handling in API routes',
-            'Create generic error messages for production',
-            'Log detailed errors server-side only',
-            'Implement proper error boundaries',
-          ],
           priority: 3,
           reasoning: 'Error messages may leak implementation details',
         },
@@ -2051,12 +2084,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-0`,
           category: 'Rendering',
           description: 'Add React.memo to prevent unnecessary re-renders',
-          steps: [
-            'Profile component renders with React DevTools',
-            'Identify components that re-render unnecessarily',
-            'Wrap pure components with React.memo',
-            'Use useCallback for event handlers passed as props',
-          ],
           priority: 1,
           reasoning: "Components re-render even when props haven't changed",
         },
@@ -2064,12 +2091,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-1`,
           category: 'Bundle Size',
           description: 'Implement code splitting for route components',
-          steps: [
-            'Use React.lazy for route components',
-            'Add Suspense boundaries with loading states',
-            'Analyze bundle with webpack-bundle-analyzer',
-            'Consider dynamic imports for heavy libraries',
-          ],
           priority: 2,
           reasoning: 'Initial bundle is larger than necessary',
         },
@@ -2077,12 +2098,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-2`,
           category: 'Caching',
           description: 'Add memoization for expensive computations',
-          steps: [
-            'Identify expensive calculations in render',
-            'Use useMemo for derived data',
-            'Consider using react-query for server state',
-            'Add caching headers for static assets',
-          ],
           priority: 3,
           reasoning: 'Expensive computations run on every render',
         },
@@ -2095,12 +2110,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-0`,
           category: 'User Experience',
           description: 'Add dark mode toggle with system preference detection',
-          steps: [
-            'Create a ThemeProvider context to manage theme state',
-            'Add a toggle component in the settings or header',
-            'Implement CSS variables for theme colors',
-            'Add localStorage persistence for user preference',
-          ],
           priority: 1,
           reasoning: 'Dark mode is a standard feature that improves accessibility and user comfort',
         },
@@ -2108,11 +2117,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-1`,
           category: 'Performance',
           description: 'Implement lazy loading for heavy components',
-          steps: [
-            'Identify components that are heavy or rarely used',
-            'Use React.lazy() and Suspense for code splitting',
-            'Add loading states for lazy-loaded components',
-          ],
           priority: 2,
           reasoning: 'Improves initial load time and reduces bundle size',
         },
@@ -2120,12 +2124,6 @@ async function simulateSuggestionsGeneration(suggestionType: SuggestionType = 'f
           id: `suggestion-${Date.now()}-2`,
           category: 'Accessibility',
           description: 'Add keyboard navigation support throughout the app',
-          steps: [
-            'Implement focus management for modals and dialogs',
-            'Add keyboard shortcuts for common actions',
-            'Ensure all interactive elements are focusable',
-            'Add ARIA labels and roles where needed',
-          ],
           priority: 3,
           reasoning: 'Improves accessibility for users who rely on keyboard navigation',
         },
@@ -2587,6 +2585,38 @@ function createMockRunningAgentsAPI(): RunningAgentsAPI {
         success: true,
         runningAgents,
         totalCount: runningAgents.length,
+      };
+    },
+  };
+}
+
+// Mock GitHub API implementation
+function createMockGitHubAPI(): GitHubAPI {
+  return {
+    checkRemote: async (projectPath: string) => {
+      console.log('[Mock] Checking GitHub remote for:', projectPath);
+      return {
+        success: true,
+        hasGitHubRemote: false,
+        remoteUrl: null,
+        owner: null,
+        repo: null,
+      };
+    },
+    listIssues: async (projectPath: string) => {
+      console.log('[Mock] Listing GitHub issues for:', projectPath);
+      return {
+        success: true,
+        openIssues: [],
+        closedIssues: [],
+      };
+    },
+    listPRs: async (projectPath: string) => {
+      console.log('[Mock] Listing GitHub PRs for:', projectPath);
+      return {
+        success: true,
+        openPRs: [],
+        mergedPRs: [],
       };
     },
   };

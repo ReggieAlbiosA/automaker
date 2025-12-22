@@ -23,10 +23,6 @@ const suggestionsSchema = {
           id: { type: 'string' },
           category: { type: 'string' },
           description: { type: 'string' },
-          steps: {
-            type: 'array',
-            items: { type: 'string' },
-          },
           priority: {
             type: 'number',
             minimum: 1,
@@ -34,7 +30,7 @@ const suggestionsSchema = {
           },
           reasoning: { type: 'string' },
         },
-        required: ['category', 'description', 'steps', 'priority', 'reasoning'],
+        required: ['category', 'description', 'priority', 'reasoning'],
       },
     },
   },
@@ -62,9 +58,8 @@ Look at the codebase and provide 3-5 concrete suggestions.
 For each suggestion, provide:
 1. A category (e.g., "User Experience", "Security", "Performance")
 2. A clear description of what to implement
-3. Concrete steps to implement it
-4. Priority (1=high, 2=medium, 3=low)
-5. Brief reasoning for why this would help
+3. Priority (1=high, 2=medium, 3=low)
+4. Brief reasoning for why this would help
 
 The response will be automatically formatted as structured JSON.`;
 
@@ -164,7 +159,6 @@ The response will be automatically formatted as structured JSON.`;
           id: `suggestion-${Date.now()}-0`,
           category: 'Analysis',
           description: 'Review the AI analysis output for insights',
-          steps: ['Review the generated analysis'],
           priority: 1,
           reasoning: 'The AI provided analysis but suggestions need manual review',
         },

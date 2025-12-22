@@ -266,7 +266,6 @@ export interface Feature {
   titleGenerating?: boolean;
   category: string;
   description: string;
-  steps: string[];
   status: 'backlog' | 'in_progress' | 'waiting_approval' | 'verified' | 'completed';
   images?: FeatureImage[];
   imagePaths?: FeatureImagePath[]; // Paths to temp files for agent context

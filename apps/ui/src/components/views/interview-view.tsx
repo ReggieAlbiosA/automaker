@@ -345,11 +345,6 @@ export function InterviewView() {
         category: 'Core',
         description: 'Initial project setup',
         status: 'backlog' as const,
-        steps: [
-          'Step 1: Review app_spec.txt',
-          'Step 2: Set up development environment',
-          'Step 3: Start implementing features',
-        ],
         skipTests: true,
       };
 

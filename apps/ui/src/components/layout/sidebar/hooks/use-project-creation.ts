@@ -40,7 +40,7 @@ export function useProjectCreation({
         // Write initial app_spec.txt with proper XML structure
         // Note: Must follow XML format as defined in apps/server/src/lib/app-spec-format.ts
         const api = getElectronAPI();
-        await api.fs.writeFile(
+        await api.writeFile(
           `${projectPath}/.automaker/app_spec.txt`,
           `<project_specification>
   <project_name>${projectName}</project_name>
@@ -103,7 +103,7 @@ export function useProjectCreation({
         const projectPath = `${parentDir}/${projectName}`;
 
         // Create project directory
-        await api.fs.createFolder(projectPath);
+        await api.mkdir(projectPath);
 
         // Finalize project setup
         await finalizeProjectCreation(projectPath, projectName);
@@ -127,16 +127,19 @@ export function useProjectCreation({
       setIsCreatingProject(true);
       try {
         const api = getElectronAPI();
-        const projectPath = `${parentDir}/${projectName}`;
 
         // Clone template repository
-        await api.git.clone(template.githubUrl, projectPath);
+        const cloneResult = await api.templates.clone(template.repoUrl, projectName, parentDir);
+        if (!cloneResult.success) {
+          throw new Error(cloneResult.error || 'Failed to clone template');
+        }
+        const projectPath = cloneResult.projectPath!;
 
         // Initialize .automaker directory structure
         await initializeProject(projectPath);
 
         // Write app_spec.txt with template-specific info
-        await api.fs.writeFile(
+        await api.writeFile(
           `${projectPath}/.automaker/app_spec.txt`,
           `<project_specification>
   <project_name>${projectName}</project_name>
@@ -196,16 +199,19 @@ export function useProjectCreation({
       setIsCreatingProject(true);
       try {
         const api = getElectronAPI();
-        const projectPath = `${parentDir}/${projectName}`;
 
         // Clone custom repository
-        await api.git.clone(repoUrl, projectPath);
+        const cloneResult = await api.templates.clone(repoUrl, projectName, parentDir);
+        if (!cloneResult.success) {
+          throw new Error(cloneResult.error || 'Failed to clone repository');
+        }
+        const projectPath = cloneResult.projectPath!;
 
         // Initialize .automaker directory structure
         await initializeProject(projectPath);
 
         // Write app_spec.txt with custom URL info
-        await api.fs.writeFile(
+        await api.writeFile(
           `${projectPath}/.automaker/app_spec.txt`,
           `<project_specification>
   <project_name>${projectName}</project_name>

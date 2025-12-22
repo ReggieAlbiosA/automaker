@@ -1,9 +1,20 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { NavigateOptions } from '@tanstack/react-router';
-import { FileText, LayoutGrid, Bot, BookOpen, UserCircle, Terminal } from 'lucide-react';
+import {
+  FileText,
+  LayoutGrid,
+  Bot,
+  BookOpen,
+  UserCircle,
+  Terminal,
+  CircleDot,
+  GitPullRequest,
+  Zap,
+} from 'lucide-react';
 import type { NavSection, NavItem } from '../types';
 import type { KeyboardShortcut } from '@/hooks/use-keyboard-shortcuts';
 import type { Project } from '@/lib/electron';
+import { getElectronAPI } from '@/lib/electron';
 
 interface UseNavigationProps {
   shortcuts: {
@@ -51,6 +62,30 @@ export function useNavigation({
   cyclePrevProject,
   cycleNextProject,
 }: UseNavigationProps) {
+  // Track if current project has a GitHub remote
+  const [hasGitHubRemote, setHasGitHubRemote] = useState(false);
+
+  useEffect(() => {
+    async function checkGitHubRemote() {
+      if (!currentProject?.path) {
+        setHasGitHubRemote(false);
+        return;
+      }
+
+      try {
+        const api = getElectronAPI();
+        if (api.github) {
+          const result = await api.github.checkRemote(currentProject.path);
+          setHasGitHubRemote(result.success && result.hasGitHubRemote === true);
+        }
+      } catch {
+        setHasGitHubRemote(false);
+      }
+    }
+
+    checkGitHubRemote();
+  }, [currentProject?.path]);
+
   // Build navigation sections
   const navSections: NavSection[] = useMemo(() => {
     const allToolsItems: NavItem[] = [
@@ -114,7 +149,7 @@ export function useNavigation({
       });
     }
 
-    return [
+    const sections: NavSection[] = [
       {
         label: 'Project',
         items: projectItems,
@@ -124,7 +159,28 @@ export function useNavigation({
         items: visibleToolsItems,
       },
     ];
-  }, [shortcuts, hideSpecEditor, hideContext, hideTerminal, hideAiProfiles]);
+
+    // Add GitHub section if project has a GitHub remote
+    if (hasGitHubRemote) {
+      sections.push({
+        label: 'GitHub',
+        items: [
+          {
+            id: 'github-issues',
+            label: 'Issues',
+            icon: CircleDot,
+          },
+          {
+            id: 'github-prs',
+            label: 'Pull Requests',
+            icon: GitPullRequest,
+          },
+        ],
+      });
+    }
+
+    return sections;
+  }, [shortcuts, hideSpecEditor, hideContext, hideTerminal, hideAiProfiles, hasGitHubRemote]);
 
   // Build keyboard shortcuts for navigation
   const navigationShortcuts: KeyboardShortcut[] = useMemo(() => {

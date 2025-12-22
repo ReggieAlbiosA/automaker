@@ -89,7 +89,6 @@ export function useBoardActions({
       title: string;
       category: string;
       description: string;
-      steps: string[];
       images: FeatureImage[];
       imagePaths: DescriptionImagePath[];
       skipTests: boolean;
@@ -208,7 +207,6 @@ export function useBoardActions({
         title: string;
         category: string;
         description: string;
-        steps: string[];
         skipTests: boolean;
         model: AgentModel;
         thinkingLevel: ThinkingLevel;

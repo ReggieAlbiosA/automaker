@@ -63,7 +63,6 @@ interface EditFeatureDialogProps {
       title: string;
       category: string;
       description: string;
-      steps: string[];
       skipTests: boolean;
       model: AgentModel;
       thinkingLevel: ThinkingLevel;
@@ -163,7 +162,6 @@ export function EditFeatureDialog({
       title: editingFeature.title ?? '',
       category: editingFeature.category,
       description: editingFeature.description,
-      steps: editingFeature.steps,
       skipTests: editingFeature.skipTests ?? false,
       model: selectedModel,
       thinkingLevel: normalizedThinking,
@@ -481,8 +479,6 @@ export function EditFeatureDialog({
             <TestingTabContent
               skipTests={editingFeature.skipTests ?? false}
               onSkipTestsChange={(skipTests) => setEditingFeature({ ...editingFeature, skipTests })}
-              steps={editingFeature.steps}
-              onStepsChange={(steps) => setEditingFeature({ ...editingFeature, steps })}
               testIdPrefix="edit"
             />
           </TabsContent>

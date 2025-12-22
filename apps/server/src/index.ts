@@ -46,6 +46,7 @@ import { SettingsService } from './services/settings-service.js';
 import { createSpecRegenerationRoutes } from './routes/app-spec/index.js';
 import { createClaudeRoutes } from './routes/claude/index.js';
 import { ClaudeUsageService } from './services/claude-usage-service.js';
+import { createGitHubRoutes } from './routes/github/index.js';
 
 // Load environment variables
 dotenv.config();
@@ -145,6 +146,7 @@ app.use('/api/templates', createTemplatesRoutes());
 app.use('/api/terminal', createTerminalRoutes());
 app.use('/api/settings', createSettingsRoutes(settingsService));
 app.use('/api/claude', createClaudeRoutes(claudeUsageService));
+app.use('/api/github', createGitHubRoutes());
 
 // Create HTTP server
 const server = createServer(app);
