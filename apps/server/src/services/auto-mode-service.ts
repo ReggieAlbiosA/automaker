@@ -27,6 +27,7 @@ import * as secureFs from '../lib/secure-fs.js';
 import type { EventEmitter } from '../lib/events.js';
 import { createAutoModeOptions, validateWorkingDirectory } from '../lib/sdk-options.js';
 import { FeatureLoader } from './feature-loader.js';
+import type { SettingsService } from './settings-service.js';
 
 const execAsync = promisify(exec);
 
@@ -341,9 +342,11 @@ export class AutoModeService {
   private autoLoopAbortController: AbortController | null = null;
   private config: AutoModeConfig | null = null;
   private pendingApprovals = new Map<string, PendingApproval>();
+  private settingsService: SettingsService | null = null;
 
-  constructor(events: EventEmitter) {
+  constructor(events: EventEmitter, settingsService?: SettingsService) {
     this.events = events;
+    this.settingsService = settingsService ?? null;
   }
 
   /**
@@ -1780,11 +1783,15 @@ This mock response was generated because AUTOMAKER_MOCK_AGENT=true was set.
       return;
     }
 
+    // Load autoLoadClaudeMd setting (project setting takes precedence over global)
+    const autoLoadClaudeMd = await this.getAutoLoadClaudeMdSetting(finalProjectPath);
+
     // Build SDK options using centralized configuration for feature implementation
     const sdkOptions = createAutoModeOptions({
       cwd: workDir,
       model: model,
       abortController,
+      autoLoadClaudeMd,
     });
 
     // Extract model, maxTurns, and allowedTools from SDK options
@@ -1823,7 +1830,8 @@ This mock response was generated because AUTOMAKER_MOCK_AGENT=true was set.
       cwd: workDir,
       allowedTools: allowedTools,
       abortController,
-      systemPrompt: options?.systemPrompt,
+      systemPrompt: sdkOptions.systemPrompt,
+      settingSources: sdkOptions.settingSources,
     };
 
     // Execute via provider
@@ -2493,5 +2501,36 @@ Begin implementing task ${task.id} now.`;
         );
       }
     });
+  }
+
+  /**
+   * Get the autoLoadClaudeMd setting, with project settings taking precedence over global.
+   * Returns false if settings service is not available.
+   */
+  private async getAutoLoadClaudeMdSetting(projectPath: string): Promise<boolean> {
+    if (!this.settingsService) {
+      console.log('[AutoMode] SettingsService not available, autoLoadClaudeMd disabled');
+      return false;
+    }
+
+    try {
+      // Check project settings first (takes precedence)
+      const projectSettings = await this.settingsService.getProjectSettings(projectPath);
+      if (projectSettings.autoLoadClaudeMd !== undefined) {
+        console.log(
+          `[AutoMode] autoLoadClaudeMd from project settings: ${projectSettings.autoLoadClaudeMd}`
+        );
+        return projectSettings.autoLoadClaudeMd;
+      }
+
+      // Fall back to global settings
+      const globalSettings = await this.settingsService.getGlobalSettings();
+      const result = globalSettings.autoLoadClaudeMd ?? false;
+      console.log(`[AutoMode] autoLoadClaudeMd from global settings: ${result}`);
+      return result;
+    } catch (error) {
+      console.error('[AutoMode] Failed to load autoLoadClaudeMd setting:', error);
+      return false;
+    }
   }
 }

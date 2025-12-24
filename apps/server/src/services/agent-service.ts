@@ -16,6 +16,7 @@ import {
 import { ProviderFactory } from '../providers/provider-factory.js';
 import { createChatOptions, validateWorkingDirectory } from '../lib/sdk-options.js';
 import { PathNotAllowedError } from '@automaker/platform';
+import type { SettingsService } from './settings-service.js';
 
 interface Message {
   id: string;
@@ -57,11 +58,13 @@ export class AgentService {
   private stateDir: string;
   private metadataFile: string;
   private events: EventEmitter;
+  private settingsService: SettingsService | null = null;
 
-  constructor(dataDir: string, events: EventEmitter) {
+  constructor(dataDir: string, events: EventEmitter, settingsService?: SettingsService) {
     this.stateDir = path.join(dataDir, 'agent-sessions');
     this.metadataFile = path.join(dataDir, 'sessions-metadata.json');
     this.events = events;
+    this.settingsService = settingsService ?? null;
   }
 
   async initialize(): Promise<void> {
@@ -186,7 +189,11 @@ export class AgentService {
       // Determine the effective working directory for context loading
       const effectiveWorkDir = workingDirectory || session.workingDirectory;
 
+      // Load autoLoadClaudeMd setting (project setting takes precedence over global)
+      const autoLoadClaudeMd = await this.getAutoLoadClaudeMdSetting(effectiveWorkDir);
+
       // Load project context files (CLAUDE.md, CODE_QUALITY.md, etc.)
+      // Note: When autoLoadClaudeMd is enabled, SDK handles CLAUDE.md loading via settingSources
       const { formattedPrompt: contextFilesPrompt } = await loadContextFiles({
         projectPath: effectiveWorkDir,
         fsModule: secureFs as Parameters<typeof loadContextFiles>[0]['fsModule'],
@@ -205,6 +212,7 @@ export class AgentService {
         sessionModel: session.model,
         systemPrompt: combinedSystemPrompt,
         abortController: session.abortController!,
+        autoLoadClaudeMd,
       });
 
       // Extract model, maxTurns, and allowedTools from SDK options
@@ -224,11 +232,12 @@ export class AgentService {
         prompt: '', // Will be set below based on images
         model: effectiveModel,
         cwd: effectiveWorkDir,
-        systemPrompt: combinedSystemPrompt,
+        systemPrompt: sdkOptions.systemPrompt,
         maxTurns: maxTurns,
         allowedTools: allowedTools,
         abortController: session.abortController!,
         conversationHistory: conversationHistory.length > 0 ? conversationHistory : undefined,
+        settingSources: sdkOptions.settingSources,
         sdkSessionId: session.sdkSessionId, // Pass SDK session ID for resuming
       };
 
@@ -593,6 +602,37 @@ You have full access to the codebase and can:
 - Run bash commands
 - Search for code patterns
 - Execute tests and builds`;
+  }
+
+  /**
+   * Get the autoLoadClaudeMd setting, with project settings taking precedence over global.
+   * Returns false if settings service is not available.
+   */
+  private async getAutoLoadClaudeMdSetting(projectPath: string): Promise<boolean> {
+    if (!this.settingsService) {
+      console.log('[AgentService] SettingsService not available, autoLoadClaudeMd disabled');
+      return false;
+    }
+
+    try {
+      // Check project settings first (takes precedence)
+      const projectSettings = await this.settingsService.getProjectSettings(projectPath);
+      if (projectSettings.autoLoadClaudeMd !== undefined) {
+        console.log(
+          `[AgentService] autoLoadClaudeMd from project settings: ${projectSettings.autoLoadClaudeMd}`
+        );
+        return projectSettings.autoLoadClaudeMd;
+      }
+
+      // Fall back to global settings
+      const globalSettings = await this.settingsService.getGlobalSettings();
+      const result = globalSettings.autoLoadClaudeMd ?? false;
+      console.log(`[AgentService] autoLoadClaudeMd from global settings: ${result}`);
+      return result;
+    } catch (error) {
+      console.error('[AgentService] Failed to load autoLoadClaudeMd setting:', error);
+      return false;
+    }
   }
 
   private generateId(): string {

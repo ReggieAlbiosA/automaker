@@ -112,10 +112,11 @@ app.use(express.json({ limit: '50mb' }));
 const events: EventEmitter = createEventEmitter();
 
 // Create services
-const agentService = new AgentService(DATA_DIR, events);
-const featureLoader = new FeatureLoader();
-const autoModeService = new AutoModeService(events);
+// Note: settingsService is created first so it can be injected into other services
 const settingsService = new SettingsService(DATA_DIR);
+const agentService = new AgentService(DATA_DIR, events, settingsService);
+const featureLoader = new FeatureLoader();
+const autoModeService = new AutoModeService(events, settingsService);
 const claudeUsageService = new ClaudeUsageService();
 
 // Initialize services
