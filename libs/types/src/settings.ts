@@ -7,6 +7,7 @@
  */
 
 import type { AgentModel } from './model.js';
+import type { PromptCustomization } from './prompts.js';
 
 // Re-export AgentModel for convenience
 export type { AgentModel };
@@ -360,6 +361,10 @@ export interface GlobalSettings {
   mcpAutoApproveTools?: boolean;
   /** Allow unrestricted tools when MCP servers are enabled (don't filter allowedTools) */
   mcpUnrestrictedTools?: boolean;
+
+  // Prompt Customization
+  /** Custom prompts for Auto Mode, Agent Runner, Backlog Planning, and Enhancements */
+  promptCustomization?: PromptCustomization;
 }
 
 /**

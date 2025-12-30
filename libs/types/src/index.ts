@@ -49,6 +49,21 @@ export { specOutputSchema } from './spec.js';
 // Enhancement types
 export type { EnhancementMode, EnhancementExample } from './enhancement.js';
 
+// Prompt customization types
+export type {
+  CustomPrompt,
+  AutoModePrompts,
+  AgentPrompts,
+  BacklogPlanPrompts,
+  EnhancementPrompts,
+  PromptCustomization,
+  ResolvedAutoModePrompts,
+  ResolvedAgentPrompts,
+  ResolvedBacklogPlanPrompts,
+  ResolvedEnhancementPrompts,
+} from './prompts.js';
+export { DEFAULT_PROMPT_CUSTOMIZATION } from './prompts.js';
+
 // Settings types and constants
 export type {
   ThemeMode,

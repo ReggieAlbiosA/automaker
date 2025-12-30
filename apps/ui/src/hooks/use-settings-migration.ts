@@ -231,6 +231,7 @@ export async function syncSettingsToServer(): Promise<boolean> {
       mcpServers: state.mcpServers,
       mcpAutoApproveTools: state.mcpAutoApproveTools,
       mcpUnrestrictedTools: state.mcpUnrestrictedTools,
+      promptCustomization: state.promptCustomization,
       projects: state.projects,
       trashedProjects: state.trashedProjects,
       projectHistory: state.projectHistory,
