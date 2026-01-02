@@ -16,10 +16,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface SandboxRiskDialogProps {
   open: boolean;
-  onConfirm: () => void;
+  onConfirm: (skipInFuture: boolean) => void;
   onDeny: () => void;
 }
 
@@ -27,6 +29,13 @@ const DOCKER_COMMAND = 'npm run dev:docker';
 
 export function SandboxRiskDialog({ open, onConfirm, onDeny }: SandboxRiskDialogProps) {
   const [copied, setCopied] = useState(false);
+  const [skipInFuture, setSkipInFuture] = useState(false);
+
+  const handleConfirm = () => {
+    onConfirm(skipInFuture);
+    // Reset checkbox state after confirmation
+    setSkipInFuture(false);
+  };
 
   const handleCopy = async () => {
     try {
@@ -93,18 +102,34 @@ export function SandboxRiskDialog({ open, onConfirm, onDeny }: SandboxRiskDialog
           </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="gap-2 sm:gap-2 pt-4">
-          <Button variant="outline" onClick={onDeny} className="px-4" data-testid="sandbox-deny">
-            Deny &amp; Exit
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={onConfirm}
-            className="px-4"
-            data-testid="sandbox-confirm"
-          >
-            <ShieldAlert className="w-4 h-4 mr-2" />I Accept the Risks
-          </Button>
+        <DialogFooter className="flex-col gap-4 sm:flex-col pt-4">
+          <div className="flex items-center space-x-2 self-start">
+            <Checkbox
+              id="skip-sandbox-warning"
+              checked={skipInFuture}
+              onCheckedChange={(checked) => setSkipInFuture(checked === true)}
+              data-testid="sandbox-skip-checkbox"
+            />
+            <Label
+              htmlFor="skip-sandbox-warning"
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Do not show this warning again
+            </Label>
+          </div>
+          <div className="flex gap-2 sm:gap-2 w-full sm:justify-end">
+            <Button variant="outline" onClick={onDeny} className="px-4" data-testid="sandbox-deny">
+              Deny &amp; Exit
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirm}
+              className="px-4"
+              data-testid="sandbox-confirm"
+            >
+              <ShieldAlert className="w-4 h-4 mr-2" />I Accept the Risks
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

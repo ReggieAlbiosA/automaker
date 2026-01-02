@@ -437,6 +437,8 @@ export interface GlobalSettings {
   autoLoadClaudeMd?: boolean;
   /** Enable sandbox mode for bash commands (default: false, enable for additional security) */
   enableSandboxMode?: boolean;
+  /** Skip showing the sandbox risk warning dialog */
+  skipSandboxWarning?: boolean;
 
   // MCP Server Configuration
   /** List of configured MCP servers for agent use */
@@ -635,6 +637,7 @@ export const DEFAULT_GLOBAL_SETTINGS: GlobalSettings = {
   lastSelectedSessionByProject: {},
   autoLoadClaudeMd: false,
   enableSandboxMode: false,
+  skipSandboxWarning: false,
   mcpServers: [],
   // Default to true for autonomous workflow. Security is enforced when adding servers
   // via the security warning dialog that explains the risks.

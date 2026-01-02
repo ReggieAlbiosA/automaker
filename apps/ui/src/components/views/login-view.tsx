@@ -11,9 +11,13 @@ import { login } from '@/lib/http-api-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { KeyRound, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/auth-store';
+import { useSetupStore } from '@/store/setup-store';
 
 export function LoginView() {
   const navigate = useNavigate();
+  const setAuthState = useAuthStore((s) => s.setAuthState);
+  const setupComplete = useSetupStore((s) => s.setupComplete);
   const [apiKey, setApiKey] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,8 +30,11 @@ export function LoginView() {
     try {
       const result = await login(apiKey.trim());
       if (result.success) {
-        // Redirect to home/board on success
-        navigate({ to: '/' });
+        // Mark as authenticated for this session (cookie-based auth)
+        setAuthState({ isAuthenticated: true, authChecked: true });
+
+        // After auth, determine if setup is needed or go to app
+        navigate({ to: setupComplete ? '/' : '/setup' });
       } else {
         setError(result.error || 'Invalid API key');
       }
@@ -73,7 +80,7 @@ export function LoginView() {
 
           {error && (
             <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}

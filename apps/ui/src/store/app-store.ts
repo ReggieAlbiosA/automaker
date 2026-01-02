@@ -499,6 +499,7 @@ export interface AppState {
   // Claude Agent SDK Settings
   autoLoadClaudeMd: boolean; // Auto-load CLAUDE.md files using SDK's settingSources option
   enableSandboxMode: boolean; // Enable sandbox mode for bash commands (may cause issues on some systems)
+  skipSandboxWarning: boolean; // Skip the sandbox environment warning dialog on startup
 
   // MCP Servers
   mcpServers: MCPServerConfig[]; // List of configured MCP servers for agent use
@@ -798,6 +799,7 @@ export interface AppActions {
   // Claude Agent SDK Settings actions
   setAutoLoadClaudeMd: (enabled: boolean) => Promise<void>;
   setEnableSandboxMode: (enabled: boolean) => Promise<void>;
+  setSkipSandboxWarning: (skip: boolean) => Promise<void>;
   setMcpAutoApproveTools: (enabled: boolean) => Promise<void>;
   setMcpUnrestrictedTools: (enabled: boolean) => Promise<void>;
 
@@ -1014,6 +1016,7 @@ const initialState: AppState = {
   cursorDefaultModel: 'auto', // Default to auto selection
   autoLoadClaudeMd: false, // Default to disabled (user must opt-in)
   enableSandboxMode: false, // Default to disabled (can be enabled for additional security)
+  skipSandboxWarning: false, // Default to disabled (show sandbox warning dialog)
   mcpServers: [], // No MCP servers configured by default
   mcpAutoApproveTools: true, // Default to enabled - bypass permission prompts for MCP tools
   mcpUnrestrictedTools: true, // Default to enabled - don't filter allowedTools when MCP enabled
@@ -1705,6 +1708,12 @@ export const useAppStore = create<AppState & AppActions>()(
       },
       setEnableSandboxMode: async (enabled) => {
         set({ enableSandboxMode: enabled });
+        // Sync to server settings file
+        const { syncSettingsToServer } = await import('@/hooks/use-settings-migration');
+        await syncSettingsToServer();
+      },
+      setSkipSandboxWarning: async (skip) => {
+        set({ skipSandboxWarning: skip });
         // Sync to server settings file
         const { syncSettingsToServer } = await import('@/hooks/use-settings-migration');
         await syncSettingsToServer();
@@ -3010,6 +3019,7 @@ export const useAppStore = create<AppState & AppActions>()(
           cursorDefaultModel: state.cursorDefaultModel,
           autoLoadClaudeMd: state.autoLoadClaudeMd,
           enableSandboxMode: state.enableSandboxMode,
+          skipSandboxWarning: state.skipSandboxWarning,
           // MCP settings
           mcpServers: state.mcpServers,
           mcpAutoApproveTools: state.mcpAutoApproveTools,

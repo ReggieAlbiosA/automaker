@@ -50,6 +50,8 @@ export function SettingsView() {
     setAutoLoadClaudeMd,
     enableSandboxMode,
     setEnableSandboxMode,
+    skipSandboxWarning,
+    setSkipSandboxWarning,
     promptCustomization,
     setPromptCustomization,
   } = useAppStore();
@@ -147,6 +149,8 @@ export function SettingsView() {
           <DangerZoneSection
             project={settingsProject}
             onDeleteClick={() => setShowDeleteDialog(true)}
+            skipSandboxWarning={skipSandboxWarning}
+            onResetSandboxWarning={() => setSkipSandboxWarning(false)}
           />
         );
       default:

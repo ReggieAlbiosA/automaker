@@ -40,9 +40,12 @@ let cachedServerUrl: string | null = null;
  * Must be called early in Electron mode before making API requests.
  */
 export const initServerUrl = async (): Promise<void> => {
-  if (typeof window !== 'undefined' && window.electronAPI?.getServerUrl) {
+  // window.electronAPI is typed as ElectronAPI, but some Electron-only helpers
+  // (like getServerUrl) are not part of the shared interface. Narrow via `any`.
+  const electron = typeof window !== 'undefined' ? (window.electronAPI as any) : null;
+  if (electron?.getServerUrl) {
     try {
-      cachedServerUrl = await window.electronAPI.getServerUrl();
+      cachedServerUrl = await electron.getServerUrl();
       console.log('[HTTP Client] Server URL from Electron:', cachedServerUrl);
     } catch (error) {
       console.warn('[HTTP Client] Failed to get server URL from Electron:', error);
@@ -109,7 +112,13 @@ export const clearSessionToken = (): void => {
  * Check if we're running in Electron mode
  */
 export const isElectronMode = (): boolean => {
-  return typeof window !== 'undefined' && !!window.electronAPI?.getApiKey;
+  if (typeof window === 'undefined') return false;
+
+  // Prefer a stable runtime marker from preload.
+  // In some dev/electron setups, method availability can be temporarily undefined
+  // during early startup, but `isElectron` remains reliable.
+  const api = window.electronAPI as any;
+  return api?.isElectron === true || !!api?.getApiKey;
 };
 
 /**
@@ -307,7 +316,9 @@ export const verifySession = async (): Promise<boolean> => {
       // Try to clear the cookie via logout (fire and forget)
       fetch(`${getServerUrl()}/api/auth/logout`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
+        body: '{}',
       }).catch(() => {});
       return false;
     }
@@ -356,7 +367,8 @@ type EventType =
   | 'auto-mode:event'
   | 'suggestions:event'
   | 'spec-regeneration:event'
-  | 'issue-validation:event';
+  | 'issue-validation:event'
+  | 'backlog-plan:event';
 
 type EventCallback = (payload: unknown) => void;
 
@@ -378,17 +390,20 @@ export class HttpApiClient implements ElectronAPI {
 
   constructor() {
     this.serverUrl = getServerUrl();
-    // Wait for API key initialization before connecting WebSocket
-    // This prevents 401 errors on startup in Electron mode
-    waitForApiKeyInit()
-      .then(() => {
-        this.connectWebSocket();
-      })
-      .catch((error) => {
-        console.error('[HttpApiClient] API key initialization failed:', error);
-        // Still attempt WebSocket connection - it may work with cookie auth
-        this.connectWebSocket();
-      });
+    // Electron mode: connect WebSocket immediately once API key is ready.
+    // Web mode: defer WebSocket connection until a consumer subscribes to events,
+    // to avoid noisy 401s on first-load/login/setup routes.
+    if (isElectronMode()) {
+      waitForApiKeyInit()
+        .then(() => {
+          this.connectWebSocket();
+        })
+        .catch((error) => {
+          console.error('[HttpApiClient] API key initialization failed:', error);
+          // Still attempt WebSocket connection - it may work with cookie auth
+          this.connectWebSocket();
+        });
+    }
   }
 
   /**
@@ -436,9 +451,24 @@ export class HttpApiClient implements ElectronAPI {
 
     this.isConnecting = true;
 
-    // In Electron mode, use API key directly
-    const apiKey = getApiKey();
-    if (apiKey) {
+    // Electron mode must authenticate with the injected API key.
+    // If the key isn't ready yet, do NOT fall back to /api/auth/token (web-mode flow).
+    if (isElectronMode()) {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        console.warn(
+          '[HttpApiClient] Electron mode: API key not ready, delaying WebSocket connect'
+        );
+        this.isConnecting = false;
+        if (!this.reconnectTimer) {
+          this.reconnectTimer = setTimeout(() => {
+            this.reconnectTimer = null;
+            this.connectWebSocket();
+          }, 250);
+        }
+        return;
+      }
+
       const wsUrl = this.serverUrl.replace(/^http/, 'ws') + '/api/events';
       this.establishWebSocket(`${wsUrl}?apiKey=${encodeURIComponent(apiKey)}`);
       return;

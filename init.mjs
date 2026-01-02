@@ -269,6 +269,20 @@ function runNpm(args, options = {}) {
 }
 
 /**
+ * Run an npm command and wait for completion
+ */
+function runNpmAndWait(args, options = {}) {
+  const child = runNpm(args, options);
+  return new Promise((resolve, reject) => {
+    child.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`npm ${args.join(' ')} failed with code ${code}`));
+    });
+    child.on('error', (err) => reject(err));
+  });
+}
+
+/**
  * Run npx command using cross-spawn for Windows compatibility
  */
 function runNpx(args, options = {}) {
@@ -525,6 +539,10 @@ async function main() {
       console.log('');
       log('Launching Web Application...', 'blue');
 
+      // Build shared packages once (dev:server and dev:web both do this at the root level)
+      log('Building shared packages...', 'blue');
+      await runNpmAndWait(['run', 'build:packages'], { stdio: 'inherit' });
+
       // Start the backend server
       log(`Starting backend server on port ${serverPort}...`, 'blue');
 
@@ -535,7 +553,7 @@ async function main() {
 
       // Start server in background, showing output in console AND logging to file
       const logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'server.log'));
-      serverProcess = runNpm(['run', 'dev:server'], {
+      serverProcess = runNpm(['run', '_dev:server'], {
         stdio: ['ignore', 'pipe', 'pipe'],
         env: {
           PORT: String(serverPort),
@@ -582,7 +600,7 @@ async function main() {
       console.log('');
 
       // Start web app
-      webProcess = runNpm(['run', 'dev:web'], {
+      webProcess = runNpm(['run', '_dev:web'], {
         stdio: 'inherit',
         env: {
           TEST_PORT: String(webPort),
