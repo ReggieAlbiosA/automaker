@@ -8,7 +8,8 @@
 
 import type { ModelProvider } from './settings.js';
 import { CURSOR_MODEL_MAP, type CursorModelId } from './cursor-models.js';
-import { CLAUDE_MODEL_MAP, CODEX_MODEL_MAP, type CodexModelId } from './model.js';
+import { CLAUDE_MODEL_MAP, CODEX_MODEL_MAP } from './model.js';
+import { CODEX_MODEL_CONFIG_MAP, type CodexModelId } from './codex-models.js';
 
 /** Provider prefix constants */
 export const PROVIDER_PREFIXES = {
@@ -32,11 +33,20 @@ export function isCursorModel(model: string | undefined | null): boolean {
   }
 
   // Check if it's a bare Cursor model ID (excluding Codex-specific models)
-  // Codex-specific models like gpt-5.1-codex-* should go to Codex, not Cursor
+  // Codex-specific models should always route to Codex provider, not Cursor
   if (model in CURSOR_MODEL_MAP) {
     // Exclude Codex-specific model IDs that are in Cursor's model map
     // These models should be routed to Codex provider instead
-    if (model.startsWith('gpt-5.1-codex-') || model.startsWith('gpt-5.2-codex-')) {
+    // This includes all Codex model variants (standard, high, max, mini, etc.)
+    if (
+      model.startsWith('gpt-5.1-codex-') ||
+      model.startsWith('gpt-5.2-codex-') ||
+      // Also exclude bare Codex models that overlap with Cursor's OpenAI models
+      model === 'gpt-5.2' ||
+      model === 'gpt-5.1' ||
+      // Exclude all Codex models from CODEX_MODEL_CONFIG_MAP
+      model in CODEX_MODEL_CONFIG_MAP
+    ) {
       return false;
     }
     return true;
